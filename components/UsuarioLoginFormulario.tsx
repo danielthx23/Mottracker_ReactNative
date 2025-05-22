@@ -361,8 +361,9 @@ const styles = StyleSheet.create({
   },
   botao: {
     padding: 12,
-    borderRadius: 8,
     alignItems: 'center',
+    borderRadius: 6,
+    outlineWidth: 0,
   },
   link: {
     color: '#66ff66',

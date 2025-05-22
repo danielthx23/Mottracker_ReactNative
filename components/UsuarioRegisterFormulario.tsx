@@ -1,5 +1,15 @@
-import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Text, Alert } from 'react-native';
+import React, { useState, useRef } from 'react';
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  Text,
+  Pressable,
+  Alert,
+  ScrollView,
+  Animated,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import Usuario from '../types/Usuario';
 
 interface UsuarioRegistroProps {
@@ -7,6 +17,8 @@ interface UsuarioRegistroProps {
 }
 
 const UsuarioRegistroFormulario: React.FC<UsuarioRegistroProps> = ({ onGravar }) => {
+  const navigation = useNavigation();
+
   const [nome, setNome] = useState('');
   const [cpf, setCpf] = useState('');
   const [senha, setSenha] = useState('');
@@ -14,19 +26,126 @@ const UsuarioRegistroFormulario: React.FC<UsuarioRegistroProps> = ({ onGravar })
   const [cnh, setCnh] = useState('');
   const [email, setEmail] = useState('');
   const [dataNascimento, setDataNascimento] = useState('');
-  const [erro, setErro] = useState('');
+  const [erros, setErros] = useState<{ [key: string]: string }>({});
+
+  const mottuGreen = '#00c534';
+  const mottuGreenDark = '#009b29';
+  const textDefault = '#0c0c0c';
+  const gray = '#4f4f4f';
+  const neutral = '#ccc';
+  const error = '#ff4d4d';
+
+  const botaoAnim = useRef(new Animated.Value(0)).current;
+  const underlineAnim = useRef(new Animated.Value(0)).current;
+
+  const botaoBackgroundColor = botaoAnim.interpolate({
+    inputRange: [0, 1, 2],
+    outputRange: [mottuGreen, textDefault, mottuGreenDark],
+  });
+
+  const botaoTextColor = botaoAnim.interpolate({
+    inputRange: [0, 1, 2],
+    outputRange: [textDefault, mottuGreen, mottuGreen],
+  });
+
+  const underlineWidth = underlineAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 180],
+  });
+
+  const animateBotaoTo = (value: number) => {
+    Animated.timing(botaoAnim, {
+      toValue: value,
+      duration: 150,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const animateHoverIn = () => {
+    Animated.spring(underlineAnim, {
+      toValue: 1,
+      speed: 12,
+      bounciness: 8,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const animateHoverOut = () => {
+    Animated.spring(underlineAnim, {
+      toValue: 0,
+      speed: 12,
+      bounciness: 0,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const formatCpf = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    const match = digits.match(/^(\d{0,3})(\d{0,3})(\d{0,3})(\d{0,2})$/);
+    if (!match) return value;
+    return [match[1], match[2], match[3]].filter(Boolean).join('.') + (match[4] ? `-${match[4]}` : '');
+  };
+
+  const validar = () => {
+    const novosErros: { [key: string]: string } = {};
+
+    if (!nome) novosErros.nome = 'Nome é obrigatório';
+    if (!cpf || cpf.replace(/\D/g, '').length !== 11) novosErros.cpf = 'CPF inválido';
+    if (!cnh) novosErros.cnh = 'CNH é obrigatória';
+    if (!email.includes('@')) novosErros.email = 'Email inválido';
+    if (!dataNascimento || isNaN(new Date(dataNascimento).getTime())) {
+      novosErros.dataNascimento = 'Data inválida. Use o formato AAAA-MM-DD';
+    }
+    if (!senha) novosErros.senha = 'Senha é obrigatória';
+    if (senha !== confirmarSenha) novosErros.confirmarSenha = 'As senhas não coincidem';
+
+    setErros(novosErros);
+    return Object.keys(novosErros).length === 0;
+  };
+
+  const validarCampo = (key: string, value: string) => {
+    setErros((prev) => {
+      const novos = { ...prev };
+
+      switch (key) {
+        case 'nome':
+          novos.nome = value ? '' : 'Nome é obrigatório';
+          break;
+        case 'cpf':
+          novos.cpf = /^\d{11}$/.test(value.replace(/\D/g, '')) ? '' : 'CPF inválido';
+          break;
+        case 'cnh':
+          novos.cnh = value ? '' : 'CNH é obrigatória';
+          break;
+        case 'email':
+          novos.email = value.includes('@') ? '' : 'Email inválido';
+          break;
+        case 'dataNascimento':
+          novos.dataNascimento = !value || isNaN(new Date(value).getTime())
+            ? 'Data inválida. Use o formato AAAA-MM-DD'
+            : '';
+          break;
+        case 'senha':
+          novos.senha = value ? '' : 'Senha é obrigatória';
+          novos.confirmarSenha = confirmarSenha && confirmarSenha !== value ? 'As senhas não coincidem' : '';
+          break;
+        case 'confirmarSenha':
+          novos.confirmarSenha = value !== senha ? 'As senhas não coincidem' : '';
+          break;
+      }
+
+      return novos;
+    });
+  };
+
+  const getInputBorderColor = (key: string, value: string) => {
+    if (erros[key]) return error;
+    if (value) return mottuGreen;
+    return neutral;
+  };
 
   const handleRegistro = () => {
-    if (senha !== confirmarSenha) {
-      setErro('As senhas não coincidem');
-      return;
-    }
-
-    const novaDataNascimento = new Date(dataNascimento);
-    if (isNaN(novaDataNascimento.getTime())) {
-      setErro('Data de nascimento inválida. Use o formato AAAA-MM-DD.');
-      return;
-    }
+    if (!validar()) return;
 
     const novoUsuario: Usuario = {
       idUsuario: 0,
@@ -35,42 +154,88 @@ const UsuarioRegistroFormulario: React.FC<UsuarioRegistroProps> = ({ onGravar })
       senhaUsuario: senha,
       cnhUsuario: cnh,
       emailUsuario: email,
-      dataNascimentoUsuario: novaDataNascimento,
+      dataNascimentoUsuario: new Date(dataNascimento),
       criadoEmUsuario: new Date(),
     };
 
-    setErro('');
     onGravar(novoUsuario);
     Alert.alert('Sucesso', 'Usuário registrado com sucesso!');
+    navigation.navigate('UsuarioLogin' as never);
   };
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.label}>Nome:</Text>
-      <TextInput style={styles.input} value={nome} onChangeText={setNome} placeholder="Nome completo" />
-
-      <Text style={styles.label}>CPF:</Text>
-      <TextInput style={styles.input} value={cpf} onChangeText={setCpf} keyboardType="numeric" placeholder="CPF" />
-
-      <Text style={styles.label}>CNH:</Text>
-      <TextInput style={styles.input} value={cnh} onChangeText={setCnh} placeholder="CNH" />
-
-      <Text style={styles.label}>E-mail:</Text>
-      <TextInput style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" placeholder="Email" />
-
-      <Text style={styles.label}>Data de Nascimento:</Text>
-      <TextInput style={styles.input} value={dataNascimento} onChangeText={setDataNascimento} placeholder="AAAA-MM-DD" />
-
-      <Text style={styles.label}>Senha:</Text>
-      <TextInput style={styles.input} value={senha} onChangeText={setSenha} secureTextEntry placeholder="Senha" />
-
-      <Text style={styles.label}>Confirmar Senha:</Text>
-      <TextInput style={styles.input} value={confirmarSenha} onChangeText={setConfirmarSenha} secureTextEntry placeholder="Confirmar senha" />
-
-      {erro ? <Text style={styles.erro}>{erro}</Text> : null}
-
-      <Button title="Registrar" onPress={handleRegistro} />
+  const renderInput = (
+    label: string,
+    value: string,
+    onChange: (v: string) => void,
+    key: string,
+    extra?: any
+  ) => (
+    <View key={key} style={styles.inputGroup}>
+      <Text style={styles.label}>{label}</Text>
+      <TextInput
+        style={[styles.input, { borderBottomColor: getInputBorderColor(key, value) }]}
+        value={value}
+        onChangeText={(text) => {
+          onChange(text);
+          validarCampo(key, text);
+        }}
+        placeholder={extra?.placeholder || label}
+        placeholderTextColor="#999"
+        secureTextEntry={extra?.secureTextEntry}
+        keyboardType={extra?.keyboardType}
+      />
+      <Text style={styles.error}>{erros[key] || ' '}</Text>
     </View>
+  );
+
+  return (
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+      <View>
+        {renderInput('Nome', nome, setNome, 'nome')}
+        <View style={styles.row}>
+          {renderInput('CPF', cpf, (text) => {
+              const formatado = formatCpf(text);
+              setCpf(formatado);
+              validarCampo('cpf', formatado);
+            }, 'cpf', { keyboardType: 'numeric' })}
+
+          {renderInput('CNH', cnh, setCnh, 'cnh')}
+        </View>
+        {renderInput('E-mail', email, setEmail, 'email', { keyboardType: 'email-address' })}
+        {renderInput('Data de Nascimento', dataNascimento, setDataNascimento, 'dataNascimento', {
+          placeholder: 'AAAA-MM-DD',
+        })}
+        {renderInput('Senha', senha, setSenha, 'senha', { secureTextEntry: true })}
+        {renderInput('Confirmar Senha', confirmarSenha, setConfirmarSenha, 'confirmarSenha', {
+          secureTextEntry: true,
+        })}
+
+        <Pressable
+          onPress={handleRegistro}
+          onHoverIn={() => animateBotaoTo(1)}
+          onHoverOut={() => animateBotaoTo(0)}
+          onPressIn={() => animateBotaoTo(2)}
+          onPressOut={() => animateBotaoTo(0)}
+          style={{ borderColor: mottuGreen, borderWidth: 2, borderRadius: 8, marginTop: 10 }}
+        >
+          <Animated.View style={[styles.botao, { backgroundColor: botaoBackgroundColor }]}>
+            <Animated.Text style={{ color: botaoTextColor, fontWeight: 'bold', fontSize: 16 }}>
+              Registrar
+            </Animated.Text>
+          </Animated.View>
+        </Pressable>
+
+        <Pressable
+          onPress={() => navigation.navigate('UsuarioLogin' as never)}
+          onHoverIn={animateHoverIn}
+          onHoverOut={animateHoverOut}
+          style={{ alignItems: 'center' }}
+        >
+          <Text style={styles.link}>Já tem conta? Voltar ao login</Text>
+          <Animated.View style={[styles.underline, { width: underlineWidth }]} />
+        </Pressable>
+      </View>
+    </ScrollView>
   );
 };
 
@@ -78,21 +243,61 @@ export default UsuarioRegistroFormulario;
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: '#0c0c0c',
     padding: 20,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#CCC',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 12,
+  inputGroup: {
+    width: '100%',
+    maxWidth: 500,
+    marginBottom: 10,
+    flex: 1,
+    paddingHorizontal: 5,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    maxWidth: 500,
   },
   label: {
+    color: '#4f4f4f',
     fontWeight: 'bold',
-    marginBottom: 4,
+    fontSize: 12,
+    marginBottom: 2,
   },
-  erro: {
-    color: 'red',
+  input: {
+    width: '100%',
+    padding: 6,
+    color: '#fff',
+    borderBottomWidth: 2,
+    fontSize: 16,
     marginBottom: 10,
+    outlineWidth: 0,
+  },
+  error: {
+    color: '#ff4d4d',
+    fontSize: 14,
+    minHeight: 16,
+  },
+  botao: {
+    padding: 12,
+    alignItems: 'center',
+    borderRadius: 6,
+    outlineWidth: 0,
+  },
+  underline: {
+    height: 2,
+    backgroundColor: '#66ff66',
+    marginTop: 4,
+  },
+  link: {
+    marginTop: 20,
+    color: '#66ff66',
+    fontSize: 14,
+    fontWeight: '300',
+    outlineWidth: 0,
   },
 });
