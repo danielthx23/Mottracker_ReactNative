@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   Dimensions,
 } from 'react-native';
 import { VictoryPie } from 'victory-native';
+import { Ionicons } from '@expo/vector-icons';
+import { ToastMessageRef } from './Toast';
 
 interface Patio {
   nome: string;
@@ -26,6 +28,7 @@ interface HomeProps {
   motosEmManutencao: number;
   cameras: Camera[];
   patios: Patio[];
+  toastRef: React.RefObject<ToastMessageRef | null>;
 }
 
 const Home: React.FC<HomeProps> = ({
@@ -34,6 +37,7 @@ const Home: React.FC<HomeProps> = ({
   motosEmManutencao,
   cameras,
   patios,
+  toastRef,
 }) => {
   const totalCameras = cameras.length;
   const camerasOnline = cameras.filter((c) => c.status === 'online').length;
@@ -54,9 +58,20 @@ const Home: React.FC<HomeProps> = ({
 
   return (
     <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
-      <Text style={styles.title}>
-        Dashboard Home <Text style={styles.info}>Info</Text>
-      </Text>
+
+        <Text style={styles.title}>
+          Dashboard Home <Text style={styles.info}>Info</Text>
+        </Text>
+
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <TouchableOpacity style={styles.buttonReset} onPress={() => {toastRef.current?.show("TODO", "Botão de resetar layout em progresso.", "warning");}}>
+            <Text style={styles.buttonTextReset}>Resetar layout atual</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => {toastRef.current?.show("TODO", "Botão de editar widgets em progresso.", "warning");}}>
+            <Ionicons name="ellipsis-vertical" size={20} color="#0c0c0c" />
+            <Text style={styles.buttonText}>Editar widgets</Text>
+          </TouchableOpacity>
+        </View>
 
       <View style={styles.grid}>
         <View style={[styles.cardTop, styles.card]}>
@@ -90,7 +105,7 @@ const Home: React.FC<HomeProps> = ({
                 colorScale={motosData.map((item) => item.color)}
                 radius={100}
                 innerRadius={30}
-                labelRadius={40}
+                labelRadius={38}
                 style={{
                   labels: { fill: 'white', fontSize: 14, fontWeight: 'bold' },
                 }}
@@ -157,6 +172,9 @@ const Home: React.FC<HomeProps> = ({
           </TouchableOpacity>
         </View>
       </View>
+      <View style={{ height: 100, marginBottom: 10 }} >
+        <Text style={styles.todo}>TODO: Mais gráficos categorizando regiões, localidades e outras métricas.</Text>
+      </View>    
     </ScrollView>
   );
 };
@@ -169,6 +187,15 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingVertical: 40
   },
+  todo: {
+    backgroundColor: '#ff9100',
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 20,
+    borderRadius: 6,
+    padding: 10,
+  },
   title: {
     fontSize: 22,
     fontWeight: '600',
@@ -179,10 +206,46 @@ const styles = StyleSheet.create({
     color: '#3b82f6',
     fontSize: 14,
   },
+  button: {
+    width: 150,
+    marginLeft: 'auto',
+    marginBottom: 20,
+    backgroundColor: '#41bf4c',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderColor: "#013400",
+    borderWidth: 1,
+  },
+  buttonReset: {
+    width: 200,
+    marginBottom: 20,
+    backgroundColor: '#0f0f0f',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderColor: "#1f1f1f",
+    borderWidth: 1,
+  },
+  buttonTextReset: {
+    fontSize: 14,
+    color: '#e5e7eb',
+    fontWeight: '800',
+    padding: 12,
+    textAlign: 'center'
+  },
+  buttonText: {
+    fontSize: 14,
+    color: '#0c0c0c',
+    fontWeight: '800',
+    padding: 12,
+  },
   grid: {
     flexDirection: 'column',
     gap: 20,
-    paddingBottom: 100
+    paddingBottom: 20
   },
   card: {
     backgroundColor: '#1f1f1f',
@@ -209,6 +272,8 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   sectionLabel: {
     fontSize: 13,

@@ -20,13 +20,20 @@ function DrawerNavigator({ usuarioLogado, toastRef, navigationRef }: { usuarioLo
   const [menuVisible, setMenuVisible] = useState(false);
 
   const signOut = async () => {
-    await AsyncStorage.removeItem('user_token');
-    toastRef.current?.show("Sessão encerrada", "Você foi deslogado com sucesso.", "info");
-    setMenuVisible(false);
-    setTimeout(() => {
-      navigationRef.current?.navigate('Usuario' as never);
-    }, 1000);
+    try {
+      await AsyncStorage.removeItem('user_token');
+      toastRef.current?.show("Sessão encerrada", "Você foi deslogado com sucesso.", "info");
+    } catch (error) {
+      console.error("Erro ao remover token de usuário:", error);
+      toastRef.current?.show("Erro", "Não foi possível encerrar a sessão.", "danger");
+    } finally {
+      setMenuVisible(false);
+      setTimeout(() => {
+        navigationRef.current?.navigate('Usuario' as never);
+      }, 1000);
+    }
   };
+
   return (
     <>
     <Drawer.Navigator
@@ -97,7 +104,9 @@ function DrawerNavigator({ usuarioLogado, toastRef, navigationRef }: { usuarioLo
           ),
         }}
       >
-        <Drawer.Screen name="Home" component={HomeScreen} />
+        <Drawer.Screen name="Home">
+          {(props) => <HomeScreen {...props} toastRef={toastRef} />}
+        </Drawer.Screen>
         <Drawer.Screen name="Motos" component={MotoScreen} />
         <Drawer.Screen name="Patios" component={MotoScreen} />
       </Drawer.Navigator>
@@ -114,30 +123,35 @@ export default function App() {
 
   useEffect(() => {
     const verificarToken = async () => {
-      const token = await AsyncStorage.getItem('user_token');
-      // Guardar os usuários no asyncstorage logicamente não é ideal, mas para o exemplo, funciona
-      const usuariosJson = await AsyncStorage.getItem('usuarios');
+      try {
+        const token = await AsyncStorage.getItem('user_token');
+        const usuariosJson = await AsyncStorage.getItem('usuarios');
   
-      if (token && usuariosJson) {
-        const usuarios: Usuario[] = JSON.parse(usuariosJson);
-        const usuarioEncontrado = usuarios.find(u => u.tokenUsuario === token);
+        if (token && usuariosJson) {
+          const usuarios: Usuario[] = JSON.parse(usuariosJson);
+          const usuarioEncontrado = usuarios.find(u => u.tokenUsuario === token);
   
-        if (usuarioEncontrado) {
-          setUsuarioLogado(usuarioEncontrado);
-          navigationRef.current?.navigate('MainApp' as never);
-          toastRef.current?.show("Login efetuado!", "Bem-vindo(a) de volta.", "success"); 
+          if (usuarioEncontrado) {
+            setUsuarioLogado(usuarioEncontrado);
+            navigationRef.current?.navigate('MainApp' as never);
+            toastRef.current?.show("Login efetuado!", "Bem-vindo(a) de volta.", "success");
+          } else {
+            await AsyncStorage.removeItem('user_token');
+            navigationRef.current?.navigate('Usuario' as never);
+            toastRef.current?.show("Tempo de conexão encerrada!", "Por favor, informe suas credenciais novamente.", "warning");
+          }
         } else {
-          await AsyncStorage.removeItem('user_token'); 
           navigationRef.current?.navigate('Usuario' as never);
-          toastRef.current?.show("Tempo de conexão encerrada!", "Por-favor informe sua credenciais novamente.", "warning"); 
         }
-      } else {
+      } catch (error) {
+        console.error("Erro ao verificar token de sessão:", error);
+        toastRef.current?.show("Erro", "Falha ao restaurar a sessão.", "danger");
         navigationRef.current?.navigate('Usuario' as never);
       }
     };
   
     verificarToken();
-  }, []);  
+  }, []); 
 
   return (
     <View style={styles.container}>
@@ -150,17 +164,23 @@ export default function App() {
           <Stack.Screen name="Usuario">
             {(props) => (
               <UsuarioScreen
-                {...props}
-                setUsuarioLogado={(usuario) => {
+              toastRef={toastRef} 
+              {...props}
+              setUsuarioLogado={async (usuario) => {
+                try {
                   setUsuarioLogado(usuario);
                   if (usuario.tokenUsuario) {
-                    AsyncStorage.setItem('user_token', usuario.tokenUsuario);
-                    toastRef.current?.show("Login efetuado!", "Bem-vindo(a) de volta.", "success"); 
+                    await AsyncStorage.setItem('user_token', usuario.tokenUsuario);
+                    toastRef.current?.show("Login efetuado!", "Bem-vindo(a) de volta.", "success");
                   } else {
-                    toastRef.current?.show("Erro de Login!", "Houve algum erro ao entrar na sua conta.", "danger"); 
+                    toastRef.current?.show("Erro de Login!", "Houve algum erro ao entrar na sua conta.", "danger");
                   }
-                }}
-              />
+                } catch (error) {
+                  console.error("Erro ao salvar token de usuário:", error);
+                  toastRef.current?.show("Erro", "Não foi possível salvar a sessão.", "danger");
+                }
+              }}
+            />
             )}
           </Stack.Screen>
           <Stack.Screen name="MainApp">

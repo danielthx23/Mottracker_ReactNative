@@ -6,12 +6,11 @@ import UsuarioRegistroFormulario from '../components/UsuarioRegisterFormulario';
 import Usuario from '../types/Usuario';
 import ToastMessage, { ToastMessageRef } from '../components/Toast';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { v4 as uuidv4 } from 'uuid';
+import uuid from 'react-native-uuid';
 
 const Stack = createStackNavigator();
 
-const UsuarioScreen = ({ setUsuarioLogado }: { setUsuarioLogado: (usuario: Usuario) => void }) => {
-  const toastRef = useRef<ToastMessageRef>(null);
+const UsuarioScreen = ({ setUsuarioLogado, toastRef }: { setUsuarioLogado: (usuario: Usuario) => void, toastRef: React.RefObject<ToastMessageRef | null> } ) => {
   const [loginError, setLoginError] = useState('');
   const [usuarios, setUsuarios] = useState<Usuario[]>([{
     cpfUsuario: '123.456.789-09', senhaUsuario: 'senha123',
@@ -25,24 +24,28 @@ const UsuarioScreen = ({ setUsuarioLogado }: { setUsuarioLogado: (usuario: Usuar
   }]);
 
   useEffect(() => {
-      const getUsuariosFromAsync = async () => {
-        // Guardar os usuários no asyncstorage logicamente não é ideal, mas para o exemplo, funciona
+    const getUsuariosFromAsync = async () => {
+      try {
         const usuariosJson = await AsyncStorage.getItem('usuarios');
-    
+  
         if (usuariosJson) {
           const usuariosAsync: Usuario[] = JSON.parse(usuariosJson);
           setUsuarios((usuarios) => {
             const usuariosAtualizados = usuariosAsync.filter(
               (usuarioAsync) =>
-              !usuarios.some((usuario) => usuario.cpfUsuario === usuarioAsync.cpfUsuario)
+                !usuarios.some((usuario) => usuario.cpfUsuario === usuarioAsync.cpfUsuario)
             );
             return [...usuarios, ...usuariosAtualizados];
           });
         }
-      };
-    
-      getUsuariosFromAsync();
-    }, []);  
+      } catch (error) {
+        console.error('Erro ao carregar usuários do AsyncStorage:', error);
+      }
+    };
+  
+    getUsuariosFromAsync();
+  }, []);
+  
 
   const login = (cpf: string, senha: string, navigation: any): void => {
     const usuarioEncontrado = usuarios.find(
@@ -58,29 +61,34 @@ const UsuarioScreen = ({ setUsuarioLogado }: { setUsuarioLogado: (usuario: Usuar
     }
   };
 
-  const gravar = async (usuario: Usuario, navigation: any) => {
+  
+const gravar = async (usuario: Usuario, navigation: any) => {
+  try {
     const jaExiste = usuarios.some((u) => u.cpfUsuario === usuario.cpfUsuario);
     if (jaExiste) {
       toastRef.current?.show('Erro', 'Já existe um usuário com este CPF.', 'danger');
       return;
     }
-  
-    // Não é ideal fazer isso aqui no frontend, seria para o backend fazer isso, mas para o exemplo, funciona
-    usuario.tokenUsuario = uuidv4();
-  
+
+    toastRef.current?.show('Sucesso', 'Usuário registrado com sucesso!', 'success');
+
+    usuario.tokenUsuario = uuid.v4() as string;
+
     const novosUsuarios = [...usuarios, usuario];
     setUsuarios(novosUsuarios);
 
-    // Não é ideal fazer isso aqui, mas para o exemplo, funciona
     await AsyncStorage.setItem('usuarios', JSON.stringify(novosUsuarios));
-    
-    toastRef.current?.show('Sucesso', 'Usuário registrado com sucesso!', 'success');
+    console.log('Usuários gravados com sucesso no AsyncStorage');
+
     navigation.navigate('UsuarioLogin');
-  };  
+  } catch (error) {
+    console.error('Erro ao gravar usuário:', error);
+    toastRef.current?.show('Erro', 'Falha ao registrar usuário.', 'danger');
+  }
+};
 
   return (
     <>
-      <ToastMessage ref={toastRef} />
       <Stack.Navigator initialRouteName="UsuarioLogin" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="UsuarioLogin">
           {(props) => (

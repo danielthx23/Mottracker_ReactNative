@@ -159,7 +159,7 @@ const UsuarioRegistroFormulario: React.FC<UsuarioRegistroProps> = ({ onGravar })
     };
 
     onGravar(novoUsuario);
-    Alert.alert('Sucesso', 'Usuário registrado com sucesso!');
+
     navigation.navigate('UsuarioLogin' as never);
   };
 
