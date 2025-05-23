@@ -190,9 +190,11 @@ const UsuarioRegistroFormulario: React.FC<UsuarioRegistroProps> = ({ onGravar })
 
   return (
     <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-      <View>
+      <View style={styles.formContainer}>
+        <Text style={{ color: mottuGreen, fontSize: 20, fontWeight: 'bold', marginBottom: 20 }}>
+          Registro de Usuário
+        </Text>
         {renderInput('Nome', nome, setNome, 'nome')}
-        <View style={styles.row}>
           {renderInput('CPF', cpf, (text) => {
               const formatado = formatCpf(text);
               setCpf(formatado);
@@ -200,7 +202,6 @@ const UsuarioRegistroFormulario: React.FC<UsuarioRegistroProps> = ({ onGravar })
             }, 'cpf', { keyboardType: 'numeric' })}
 
           {renderInput('CNH', cnh, setCnh, 'cnh')}
-        </View>
         {renderInput('E-mail', email, setEmail, 'email', { keyboardType: 'email-address' })}
         {renderInput('Data de Nascimento', dataNascimento, setDataNascimento, 'dataNascimento', {
           placeholder: 'AAAA-MM-DD',
@@ -245,16 +246,19 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: '#0c0c0c',
     padding: 20,
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
+  },
+  formContainer: {
+    width: '100%',
+    paddingBlock: 50,
   },
   inputGroup: {
     width: '100%',
-    maxWidth: 500,
+    maxWidth: 400,
+    minWidth: 350,
     marginBottom: 10,
-    flex: 1,
-    paddingHorizontal: 5,
   },
   row: {
     flexDirection: 'row',

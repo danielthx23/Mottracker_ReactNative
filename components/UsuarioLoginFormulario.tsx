@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -14,12 +14,29 @@ const AnimatedTextInput = Animated.createAnimatedComponent(RNTextInput);
 
 interface UsuarioLoginFormularioProps {
   onLogin: (cpf: string, senha: string) => void;
+  loginError?: string;
+  setLoginError: (error: string) => void;
 }
 
-const UsuarioLoginFormulario: React.FC<UsuarioLoginFormularioProps> = ({ onLogin }) => {
+const UsuarioLoginFormulario: React.FC<UsuarioLoginFormularioProps> = ({ onLogin, loginError, setLoginError }) => {
   const [cpf, setCpf] = useState('');
   const [senha, setSenha] = useState('');
   const [cpfError, setCpfError] = useState('');
+
+  useEffect(() => {
+    if (loginError) {
+      Animated.timing(cpfBorderAnim, {
+        toValue: 2,
+        duration: 300,
+        useNativeDriver: false,
+      }).start();
+      Animated.timing(senhaBorderAnim, {
+        toValue: 2,
+        duration: 300,
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [loginError]);
 
   const navigation = useNavigation();
 
@@ -178,8 +195,8 @@ const UsuarioLoginFormulario: React.FC<UsuarioLoginFormularioProps> = ({ onLogin
   });
 
   const senhaBorderColor = senhaBorderAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['#0f210f', mottuGreenVibrant],
+    inputRange: [0, 1, 2],
+    outputRange: ['#0f210f', mottuGreenVibrant, errorColor],
   });
 
   const botaoBackgroundColor = botaoAnim.interpolate({
@@ -221,7 +238,7 @@ const UsuarioLoginFormulario: React.FC<UsuarioLoginFormularioProps> = ({ onLogin
 
   const handleLogin = () => {
     const cleaned = cpf.replace(/\D/g, '');
-
+  
     if (cleaned.length !== 11 || cpfError || !isValidCpf(cpf)) {
       setCpfError('CPF inválido');
       Animated.timing(cpfBorderAnim, {
@@ -231,11 +248,20 @@ const UsuarioLoginFormulario: React.FC<UsuarioLoginFormularioProps> = ({ onLogin
       }).start();
       return;
     }
-
+  
+    if (!senha) {
+      Animated.timing(senhaBorderAnim, {
+        toValue: 2,
+        duration: 300,
+        useNativeDriver: false,
+      }).start();
+      return;
+    }
+  
     onLogin(cpf, senha);
   };
 
-  const irParaRegistro = () => navigation.navigate('UsuarioRegistro' as never);
+  const irParaRegistro = () => {setLoginError(''); navigation.navigate('UsuarioRegistro' as never)};
 
   const underlineWidth = underlineAnim.interpolate({
     inputRange: [0, 1],
@@ -275,6 +301,13 @@ const UsuarioLoginFormulario: React.FC<UsuarioLoginFormularioProps> = ({ onLogin
           onFocus={handleSenhaFocus}
           onBlur={handleSenhaBlur}
         />
+        <View style={{ minHeight: 20, marginTop: 5 }}>
+          {loginError ? (
+            <Text style={styles.errorText}>{loginError}</Text>
+          ) : (
+            <Text style={{ fontSize: 12, opacity: 0 }}>&nbsp;</Text>
+          )}
+        </View>
 
         <Pressable
           onPress={handleLogin}
