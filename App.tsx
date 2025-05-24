@@ -107,8 +107,12 @@ function DrawerNavigator({ usuarioLogado, toastRef, navigationRef }: { usuarioLo
         <Drawer.Screen name="Home">
           {(props) => <HomeScreen {...props} toastRef={toastRef} />}
         </Drawer.Screen>
-        <Drawer.Screen name="Motos" component={MotoScreen} />
-        <Drawer.Screen name="Patios" component={MotoScreen} />
+        <Drawer.Screen name="Motos">
+          {(props) => <MotoScreen {...props} toastRef={toastRef} />}
+        </Drawer.Screen>
+        <Drawer.Screen name="Patios">
+          {(props) => <MotoScreen {...props} toastRef={toastRef} />}
+        </Drawer.Screen>
       </Drawer.Navigator>
       </>
   );

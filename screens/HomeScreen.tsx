@@ -7,14 +7,14 @@ const HomeScreen = ({ toastRef }: {toastRef: React.RefObject<ToastMessageRef | n
   return (
     <View style={{ flex: 1, backgroundColor: '#0c0c0c' }}>
       <HomeDashboard
-        motosRetiradas={123}
+        motosRetiradas={133}
         motosEmPatio={80}
         motosEmManutencao={7}
         cameras={[
           { id: 1, status: 'online' },
           { id: 2, status: 'offline' },
           { id: 3, status: 'online' },
-          { id: 4, status: 'online' },
+          { id: 4, status: 'offline' },
         ]}
         patios={[
           { nome: 'Pátio A', quantidadeMotos: 24 },

@@ -14,6 +14,7 @@ interface Moto {
     quilometragemMoto: number;
     estadoMoto: Estados;
     condicoesMoto?: string;
+    hora: string;
 }
 
 export default Moto;
