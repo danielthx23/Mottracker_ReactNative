@@ -3,7 +3,7 @@ import { View, Text } from 'react-native';
 import HomeDashboard from '../components/HomeDashboard'; // ajuste o caminho conforme necessário
 import { ToastMessageRef } from '../components/Toast';
 
-const HomeScreen = ({ toastRef }: {toastRef: React.RefObject<ToastMessageRef | null>}) => {
+const HomeScreen = ({ toastRef, navigation }: {toastRef: React.RefObject<ToastMessageRef | null>, navigation: any}) => {
   return (
     <View style={{ flex: 1, backgroundColor: '#0c0c0c' }}>
       <HomeDashboard
@@ -22,7 +22,8 @@ const HomeScreen = ({ toastRef }: {toastRef: React.RefObject<ToastMessageRef | n
           { nome: 'Pátio C', quantidadeMotos: 10 },
         ]} 
         // esse toastref tem que ficar na context urgente
-        toastRef={toastRef}        />
+        toastRef={toastRef}
+        navigation={navigation}        />
     </View>
   );
 };

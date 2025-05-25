@@ -9,6 +9,7 @@ import {
 import { VictoryPie } from 'victory-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ToastMessageRef } from './Toast';
+import { useNavigation } from '@react-navigation/native';
 
 interface Patio {
   nome: string;
@@ -27,6 +28,7 @@ interface HomeProps {
   cameras: Camera[];
   patios: Patio[];
   toastRef: React.RefObject<ToastMessageRef | null>;
+  navigation: any;
 }
 
 const Home: React.FC<HomeProps> = ({
@@ -36,6 +38,7 @@ const Home: React.FC<HomeProps> = ({
   cameras,
   patios,
   toastRef,
+  navigation
 }) => {
   const totalCameras = cameras.length;
   const camerasOnline = cameras.filter((c) => c.status === 'online').length;
@@ -52,29 +55,42 @@ const Home: React.FC<HomeProps> = ({
     { x: "Online", y: camerasOnline, label: `${camerasOnline}`, color: '#10b981' },
     { x: "Offline", y: camerasOffline, label: `${camerasOffline}`, color: '#ef4444' },
     { x: "", y: totalCameras, label: "", color: 'transparent' },
-  ]
+  ];
+
+  const showInfo = (message: string) => {
+    toastRef.current?.show("Informação", message, "info");
+  };
 
   return (
     <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
-
-        <Text style={styles.title}>
-          Dashboard Home <Text style={styles.info}>Info</Text>
+      <Text style={styles.title}>
+        Dashboard Home{' '}
+        <Text style={styles.info} onPress={() => showInfo('Painel inicial com resumos de motos, pátios e câmeras.')}>
+          Info
         </Text>
+      </Text>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <TouchableOpacity style={styles.buttonReset} onPress={() => {toastRef.current?.show("TODO", "Botão de resetar layout em progresso.", "warning");}}>
-            <Text style={styles.buttonTextReset}>Resetar layout atual</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button} onPress={() => {toastRef.current?.show("TODO", "Botão de editar widgets em progresso.", "warning");}}>
-            <Ionicons name="ellipsis-vertical" size={20} color="#0c0c0c" />
-            <Text style={styles.buttonText}>Editar widgets</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <TouchableOpacity style={styles.buttonReset} onPress={() => {
+          toastRef.current?.show("TODO", "Botão de resetar layout em progresso.", "warning");
+        }}>
+          <Text style={styles.buttonTextReset}>Resetar layout atual</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => {
+          toastRef.current?.show("TODO", "Botão de editar widgets em progresso.", "warning");
+        }}>
+          <Ionicons name="ellipsis-vertical" size={20} color="#0c0c0c" />
+          <Text style={styles.buttonText}>Editar widgets</Text>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.grid}>
         <View style={[styles.cardTop, styles.card]}>
           <Text style={styles.cardTitle}>
-            Motos e Pátios <Text style={styles.info}>Info</Text>
+            Motos e Pátios{' '}
+            <Text style={styles.info} onPress={() => showInfo('Resumo da situação das motos e dos principais pátios.')}>
+              Info
+            </Text>
           </Text>
 
           <View style={styles.row}>
@@ -90,7 +106,6 @@ const Home: React.FC<HomeProps> = ({
 
               <Text style={styles.sectionLabel}>Total</Text>
               <Text style={styles.sectionValue}>{totalMotos}</Text>
-              
             </View>
 
             <View style={styles.chartMotosContainer}>
@@ -108,11 +123,10 @@ const Home: React.FC<HomeProps> = ({
                   labels: { fill: 'white', fontSize: 14, fontWeight: 'bold' },
                 }}
               />
+            </View>
           </View>
 
-          </View>
-
-          <TouchableOpacity style={styles.link}>
+          <TouchableOpacity style={styles.link} onPress={() => navigation.navigate('Motos' as never)}>
             <Text style={styles.linkText}>Ir para gerenciamento de motos</Text>
           </TouchableOpacity>
 
@@ -123,14 +137,17 @@ const Home: React.FC<HomeProps> = ({
               <Text style={styles.listValue}>{item.quantidadeMotos} motos</Text>
             </View>
           ))}
-          <TouchableOpacity style={styles.link}>
+          <TouchableOpacity style={styles.link} onPress={() => navigation.navigate('Patios' as never)}>
             <Text style={styles.linkText}>Ir para gerenciamento de pátios</Text>
           </TouchableOpacity>
         </View>
 
         <View style={[styles.cardBottom, styles.card]}>
           <Text style={styles.cardTitle}>
-            Saúde das Câmeras <Text style={styles.info}>Info</Text>
+            Saúde das Câmeras{' '}
+            <Text style={styles.info} onPress={() => showInfo('Exibe o status das câmeras de monitoramento.')}>
+              Info
+            </Text>
           </Text>
 
           <View style={styles.row}>
@@ -146,33 +163,36 @@ const Home: React.FC<HomeProps> = ({
             </View>
 
             <View style={styles.chartCamerasContainer}>
-                <VictoryPie
-                  data={camerasData}
-                  colorScale={['#10b981', '#ef4444', 'transparent']}
-                  startAngle={-90}
-                  endAngle={360} 
-                  radius={100}
-                  innerRadius={50}
-                  labelRadius={75}
-                  width={200}
-                  height={250}
-                  labels={({ datum }) => datum.label !== '' ? datum.label : null}
-                  style={{
-                    data: { fill: ({ datum }) => datum.color },
-                    labels: { fill: '#fff', fontSize: 16, fontWeight: 'bold' },
-                  }}
-                />
+              <VictoryPie
+                data={camerasData}
+                colorScale={['#10b981', '#ef4444', 'transparent']}
+                startAngle={-90}
+                endAngle={360}
+                radius={100}
+                innerRadius={50}
+                labelRadius={75}
+                width={200}
+                height={250}
+                labels={({ datum }) => datum.label !== '' ? datum.label : null}
+                style={{
+                  data: { fill: ({ datum }) => datum.color },
+                  labels: { fill: '#fff', fontSize: 16, fontWeight: 'bold' },
+                }}
+              />
             </View>
           </View>
 
-          <TouchableOpacity style={styles.link}>
+          <TouchableOpacity style={styles.link} onPress={() => {
+            toastRef.current?.show("TODO", "Funcionalidade de listar câmeras em progresso.", "warning");
+          }}>
             <Text style={styles.linkText}>Ir para todas as câmeras</Text>
           </TouchableOpacity>
         </View>
       </View>
-      <View style={{ height: 100, marginBottom: 10 }} >
+
+      <View style={{ height: 100, marginBottom: 10 }}>
         <Text style={styles.todo}>TODO: Mais gráficos categorizando regiões, localidades e outras métricas.</Text>
-      </View>    
+      </View>
     </ScrollView>
   );
 };
