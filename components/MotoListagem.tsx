@@ -9,80 +9,86 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ToastMessageRef } from './Toast';
-import { VictoryChart, VictoryLine, VictoryAxis, VictoryTheme } from 'victory-native';
-
-interface Moto {
-  placa: string;
-  modelo: string;
-  status: 'pátio' | 'retirada' | 'manutenção';
-  hora: string;
-}
+import { VictoryChart, VictoryLine, VictoryAxis, VictoryTheme, VictoryLabel } from 'victory-native';
+import { Estados, Moto } from '../types/Moto';
 
 interface MotoListProps {
   motos: Moto[];
-  onCreateMoto: () => void; // Função para criar nova moto
-  onMotoDetails: (placa: string) => void; // Função para navegar para o detalhe da moto
+  onCreateMoto: () => void;
+  onMotoDetails: (idMoto: number) => void;
   toastRef: React.RefObject<ToastMessageRef | null>;
 }
 
 const MotoListDashboard: React.FC<MotoListProps> = ({ motos, onCreateMoto, onMotoDetails, toastRef }) => {
   const [search, setSearch] = useState('');
+  const [visibleCount, setVisibleCount] = useState(10);
 
   const filteredMotos = motos.filter((moto) =>
-    moto.placa.toLowerCase().includes(search.toLowerCase()) ||
-    moto.modelo.toLowerCase().includes(search.toLowerCase())
+    moto.placaMoto.toLowerCase().includes(search.toLowerCase()) ||
+    moto.modeloMoto.toLowerCase().includes(search.toLowerCase())
   );
 
-  const statusColor = {
-    pátio: '#10b981',
-    retirada: '#3b82f6',
-    manutenção: '#f59e0b',
+  const statusColor: Record<Estados, string> = {
+    [Estados.NoPatio]: '#10b981',
+    [Estados.Retirada]: '#3b82f6',
+    [Estados.NaoDevolvida]: '#f59e0b',
+    [Estados.NoPatioErrado]: '#ef4444',
   };
 
-  const countByTimeAndStatus = (status: Moto['status'], time: string) => {
-    return motos.filter((m) => m.status === status && m.hora === time).length;
+  const hours = Array.from({ length: 11 }, (_, i) => `${8 + i}:00`);
+
+  const countByTimeAndStatus = (estado: Estados, time: string) => {
+    return motos.filter((m) => m.estadoMoto === estado && m.hora === time).length;
   };
 
-  // Gerar dados para o gráfico
-  const hours = Array.from({ length: 11 }, (_, i) => `${8 + i}:00`); // Horários de 08:00 até 18:00
+  const dataSeries = {
+    [Estados.Retirada]: hours.map((time) => ({ x: time, y: countByTimeAndStatus(Estados.Retirada, time) })),
+    [Estados.NoPatio]: hours.map((time) => ({ x: time, y: countByTimeAndStatus(Estados.NoPatio, time) })),
+    [Estados.NoPatioErrado]: hours.map((time) => ({ x: time, y: countByTimeAndStatus(Estados.NoPatioErrado, time) })),
+    [Estados.NaoDevolvida]: hours.map((time) => ({ x: time, y: countByTimeAndStatus(Estados.NaoDevolvida, time) })),
+  };
 
-  // Prepara os dados para cada linha (status)
-  const dataRetirada = hours.map((time) => ({
+  const dataTotal = hours.map((time) => ({
     x: time,
-    y: countByTimeAndStatus('retirada', time),
+    y: motos.filter((m) => m.hora === time).length,
   }));
+  const maxTotal = Math.max(...dataTotal.map((d) => d.y), 5);
 
-  const dataPatio = hours.map((time) => ({
-    x: time,
-    y: countByTimeAndStatus('pátio', time),
-  }));
-
-  const dataManutencao = hours.map((time) => ({
-    x: time,
-    y: countByTimeAndStatus('manutenção', time),
-  }));
+  const handleCardPress = (estado: Estados) => {
+    const firstMoto = filteredMotos.find((m) => m.estadoMoto === estado);
+    if (firstMoto) {
+      onMotoDetails(firstMoto.idMoto);
+    } else {
+      toastRef.current?.show("Sem motos", `Nenhuma moto com status ${estado}`, "warning");
+    }
+  };
 
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Motos</Text>
 
       <View style={styles.dashboardRow}>
-        <View style={[styles.card, { backgroundColor: '#3b82f6' }]}>  
-          <Text style={styles.cardLabel}>Retiradas</Text>
-          <Text style={styles.cardValue}>{filteredMotos.filter(m => m.status === 'retirada').length}</Text>
-        </View>
-        <View style={[styles.card, { backgroundColor: '#10b981' }]}>  
-          <Text style={styles.cardLabel}>Em Pátio</Text>
-          <Text style={styles.cardValue}>{filteredMotos.filter(m => m.status === 'pátio').length}</Text>
-        </View>
-        <View style={[styles.card, { backgroundColor: '#f59e0b' }]}>  
-          <Text style={styles.cardLabel}>Manutenção</Text>
-          <Text style={styles.cardValue}>{filteredMotos.filter(m => m.status === 'manutenção').length}</Text>
-        </View>
+        {(Object.values(Estados) as Estados[]).map((estado) => (
+          <TouchableOpacity
+            key={estado}
+            style={[styles.card, { backgroundColor: statusColor[estado] }]}
+            onPress={() => handleCardPress(estado)}
+          >
+            <Text style={styles.cardLabel}>{estado}</Text>
+            <Text style={styles.cardValue}>{filteredMotos.filter(m => m.estadoMoto === estado).length}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       <View style={styles.chartContainer}>
         <VictoryChart theme={VictoryTheme.material} height={250}>
+          <VictoryLabel
+            text="Status por Horário Comercial"
+            x={200}
+            y={25}
+            textAnchor="middle"
+            style={{ fill: "#f3f4f6", fontSize: 16, fontWeight: "600" }}
+          />
           <VictoryAxis
             tickValues={hours}
             tickFormat={hours}
@@ -94,33 +100,20 @@ const MotoListDashboard: React.FC<MotoListProps> = ({ motos, onCreateMoto, onMot
           />
           <VictoryAxis
             dependentAxis
+            domain={[0, maxTotal]}
             style={{
               axis: { stroke: '#f9fafb' },
               ticks: { stroke: '#f9fafb' },
               tickLabels: { fontSize: 10, fill: '#f9fafb' },
             }}
           />
-          <VictoryLine
-            data={dataRetirada}
-            style={{
-              data: { stroke: '#3b82f6', strokeWidth: 3 },
-              labels: { fill: '#f9fafb', fontSize: 8 },
-            }}
-          />
-          <VictoryLine
-            data={dataPatio}
-            style={{
-              data: { stroke: '#10b981', strokeWidth: 3 },
-              labels: { fill: '#f9fafb', fontSize: 8 },
-            }}
-          />
-          <VictoryLine
-            data={dataManutencao}
-            style={{
-              data: { stroke: '#f59e0b', strokeWidth: 3 },
-              labels: { fill: '#f9fafb', fontSize: 8 },
-            }}
-          />
+          {Object.entries(dataSeries).map(([key, data]) => (
+            <VictoryLine
+              key={key}
+              data={data}
+              style={{ data: { stroke: statusColor[key as Estados], strokeWidth: 3 } }}
+            />
+          ))}
         </VictoryChart>
       </View>
 
@@ -133,31 +126,50 @@ const MotoListDashboard: React.FC<MotoListProps> = ({ motos, onCreateMoto, onMot
       />
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <TouchableOpacity style={styles.filtrosButton} onPress={() => {toastRef.current?.show("TODO", "Botão de editar widgets em progresso.", "warning");}}>
-          <Ionicons name="ellipsis-vertical" size={20} color="#f9fafb" />
+        <TouchableOpacity
+          style={styles.filtrosButton}
+          onPress={() => {
+            toastRef.current?.show("TODO", "Botão de editar widgets em progresso.", "warning");
+          }}
+        >
+          <Ionicons name="filter" size={20} color="#f9fafb" />
           <Text style={styles.filtrosText}>Filtros</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.createMotoButton} onPress={() => {toastRef.current?.show("TODO", "Botão de editar widgets em progresso.", "warning");}}>
+        <TouchableOpacity
+          style={styles.createMotoButton}
+          onPress={onCreateMoto}
+        >
           <Ionicons name="add" size={20} color="#0c0c0c" />
           <Text style={styles.createMotoButtonText}>Lançar moto</Text>
         </TouchableOpacity>
       </View>
 
-      {filteredMotos.length > 0 ? (
-        filteredMotos.map((item) => (
-          <TouchableOpacity key={item.placa} onPress={() => onMotoDetails(item.placa)} style={styles.listItem}>
-            <View>
-              <Text style={styles.placa}>{item.placa}</Text>
-              <Text style={styles.modelo}>{item.modelo}</Text>
-            </View>
-            <Text style={[styles.status, { color: statusColor[item.status] }]}> 
-              {item.status.toUpperCase()}
+      {filteredMotos.slice(0, visibleCount).map((item) => (
+        <TouchableOpacity key={item.placaMoto} onPress={() => onMotoDetails(item.idMoto)} style={styles.listItem}>
+          <View>
+            <Text style={styles.placa}>{item.placaMoto}</Text>
+            <Text style={styles.modelo}>{item.modeloMoto}</Text>
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <Text style={[styles.status, { color: statusColor[item.estadoMoto] }]}>
+              {item.estadoMoto.toUpperCase()}
             </Text>
+            <Ionicons name="ellipse" size={10} color={statusColor[item.estadoMoto]} />
+          </View>
+        </TouchableOpacity>
+      ))}
+
+      {visibleCount < filteredMotos.length && (
+        <View style={{ alignItems: 'center', marginVertical: 10 }}>
+          <Ionicons name="ellipsis-horizontal" size={20} color="#f9fafb" />
+          <TouchableOpacity
+            onPress={() => setVisibleCount((prev) => prev + 10)}
+            style={styles.loadMoreButton}
+          >
+            <Text style={styles.loadMoreText}>Carregar mais</Text>
           </TouchableOpacity>
-        ))
-      ) : (
-        <Text style={styles.empty}>Nenhuma moto encontrada.</Text>
+        </View>
       )}
     </ScrollView>
   );
@@ -179,12 +191,13 @@ const styles = StyleSheet.create({
   },
   dashboardRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
   card: {
-    flex: 1,
+    flexBasis: '48%',
     padding: 12,
-    marginHorizontal: 4,
+    marginVertical: 6,
     borderRadius: 6,
   },
   cardLabel: {
@@ -206,7 +219,12 @@ const styles = StyleSheet.create({
   },
   chartContainer: {
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    borderColor: '#1f1f1f',
+    borderBottomWidth: 2,
+    borderTopWidth: 2,
+    marginBottom: 10,
+    marginTop: 20,
   },
   filtrosButton: {
     width: 100,
@@ -266,9 +284,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textTransform: 'uppercase',
   },
-  empty: {
-    color: '#9ca3af',
-    textAlign: 'center',
+  loadMoreButton: {
+    width: '100%',
+    backgroundColor: '#1f1f1f',
+    paddingVertical: 12,
+    gap: 10,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 20,
-  }
+    marginBottom: 50,
+    borderColor: "#1f1f1f",
+    borderWidth: 2,
+  },
+  loadMoreText: {
+    color: '#f9fafb',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });

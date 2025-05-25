@@ -1,51 +1,183 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
+import { createStackNavigator, StackScreenProps } from '@react-navigation/stack';
 import MotoListDashboard from '../components/MotoListagem';
+import MotoDetalhes from '../components/MotoDetalhes';
+import MotoFormulario from '../components/MotoFormulario';
 import { ToastMessageRef } from '../components/Toast';
+import { Estados, Moto } from '../types/Moto';
 
-interface Moto {
-    placa: string;
-    modelo: string;
-    status: 'pátio' | 'retirada' | 'manutenção';
-    hora: string;
+const mapStatusToEstado = (status: string): Estados => {
+  switch (status) {
+    case 'pátio': return Estados.NoPatio;
+    case 'pátio errado': return Estados.NoPatioErrado;
+    case 'retirada': return Estados.Retirada;
+    case 'manutenção': return Estados.NaoDevolvida;
+    default: return Estados.NoPatio;
   }
+};
 
-  const motos: Moto[] = [
-    { placa: 'ABC1234', modelo: 'Honda CG 160', status: 'pátio', hora: '08:00' },
-    { placa: 'XYZ5678', modelo: 'Yamaha YBR 125', status: 'retirada', hora: '09:00' },
-    { placa: 'DEF2345', modelo: 'Honda Biz', status: 'manutenção', hora: '10:00' },
-    { placa: 'GHI6789', modelo: 'Suzuki Yes', status: 'pátio', hora: '11:00' },
-    { placa: 'JKL9876', modelo: 'Kawasaki Ninja 300', status: 'retirada', hora: '11:30' },
-    { placa: 'MNO4321', modelo: 'Bros 160', status: 'manutenção', hora: '12:00' },
-    { placa: 'PQR3456', modelo: 'CG 125', status: 'pátio', hora: '12:30' },
-    { placa: 'STU6543', modelo: 'Yamaha Fazer 250', status: 'retirada', hora: '13:00' },
-    { placa: 'VWX7654', modelo: 'Honda Titan', status: 'manutenção', hora: '13:30' },
-    { placa: 'YZA8765', modelo: 'Suzuki GSX', status: 'pátio', hora: '14:00' },
-    { placa: 'BCD9876', modelo: 'Harley-Davidson Sportster', status: 'retirada', hora: '14:30' },
-    { placa: 'EFG6543', modelo: 'Ducati Monster 821', status: 'manutenção', hora: '15:00' },
-    { placa: 'HIJ3210', modelo: 'BMW F 800 GS', status: 'pátio', hora: '15:30' },
-    { placa: 'KLM1234', modelo: 'Triumph Street Triple', status: 'retirada', hora: '16:00' },
-    { placa: 'NOP4321', modelo: 'Royal Enfield Himalayan', status: 'manutenção', hora: '16:30' },
-    { placa: 'QRS8765', modelo: 'KTM Duke 390', status: 'pátio', hora: '17:00' },
-    { placa: 'TUV2345', modelo: 'Honda CRF 250L', status: 'retirada', hora: '17:30' },
-    { placa: 'WXY3456', modelo: 'Yamaha MT-07', status: 'manutenção', hora: '18:00' },
-    { placa: 'ZAB4567', modelo: 'Kawasaki Z900', status: 'pátio', hora: '18:30' },
-    { placa: 'CDE5678', modelo: 'Harley-Davidson Touring', status: 'retirada', hora: '19:00' },
-  ];
-  
-const UsuarioScreen = ({ toastRef }: { toastRef: React.RefObject<ToastMessageRef | null> }) => {
+const motos: Moto[] = Array.from({ length: 300 }, (_, i) => {
+  const horas = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'];
+  const modelos = ['Honda CG', 'Yamaha XTZ', 'KTM RC', 'BMW GS', 'Ducati Multistrada', 'Harley Road King'];
+  const statusList = ['pátio', 'retirada', 'manutenção', 'pátio errado'];
+
+  return {
+    idMoto: i + 1,
+    placaMoto: `ZZZ${1000 + i}`,
+    modeloMoto: modelos[Math.floor(Math.random() * modelos.length)],
+    anoMoto: 2022,
+    quilometragemMoto: 12345,
+    estadoMoto: mapStatusToEstado(statusList[Math.floor(Math.random() * statusList.length)]),
+    condicoesMoto: 'Boa',
+    hora: horas[Math.floor(Math.random() * horas.length)],
+  };
+});
+
+type MotoStackParamList = {
+  MotoList: undefined;
+  MotoDetalhes: { idMoto: number };
+  MotoFormulario: { moto?: Moto } | undefined;
+};
+
+const Stack = createStackNavigator<MotoStackParamList>();
+
+type MotoListScreenProps = StackScreenProps<MotoStackParamList, 'MotoList'> & {
+  toastRef: React.RefObject<ToastMessageRef | null>;
+  motos: Moto[];
+};
+
+const MotoListScreen: React.FC<MotoListScreenProps> = ({
+  navigation,
+  toastRef,
+  motos,
+}) => {
   return (
     <View style={styles.container}>
-      <MotoListDashboard motos={motos} toastRef={toastRef} onCreateMoto={function (): void {
-        throw new Error('Function not implemented.');
-      } } onMotoDetails={function (placa: string): void {
-        throw new Error('Function not implemented.');
-      } } />
+      <MotoListDashboard
+        motos={motos}
+        toastRef={toastRef}
+        onCreateMoto={() => {
+          navigation.navigate('MotoFormulario');
+        }}
+        onMotoDetails={(idMoto) => {
+          navigation.navigate('MotoDetalhes', { idMoto: idMoto });
+        }}
+      />
     </View>
   );
 };
 
-export default UsuarioScreen;
+type MotoDetalhesScreenProps = StackScreenProps<MotoStackParamList, 'MotoDetalhes'> & {
+  motos: Moto[];
+  onDelete: (idMoto: number) => void;
+};
+
+const MotoDetalhesScreen: React.FC<MotoDetalhesScreenProps> = ({ 
+  motos, 
+  onDelete, 
+  navigation, 
+  route 
+}) => {
+  const patioVertices = [
+    { id: 'p1', x: 10, y: 10 },
+    { id: 'p2', x: 370, y: 10 },
+    { id: 'p3', x: 370, y: 140 },
+    { id: 'p4', x: 180, y: 140 },
+    { id: 'p5', x: 180, y: 350 },
+    { id: 'p6', x: 10, y: 350 },
+  ];
+
+  const motoPosition = { x: 50, y: 250 };
+  const userPosition = { x: 250, y: 100 };
+
+  return (
+    <View style={styles.container}>
+      <MotoDetalhes
+        motos={motos}
+        patioVertices={patioVertices}
+        motoPosition={motoPosition}
+        userPosition={userPosition} 
+        onDelete={onDelete}
+      />
+    </View>
+  );
+};
+
+const MotoScreen = ({ toastRef }: { toastRef: React.RefObject<ToastMessageRef | null> }) => {
+  const [listaMotos, setListaMotos] = useState<Moto[]>(motos);
+
+  const gravarMoto = (moto: Moto) => {
+    const novaMoto: Moto = {
+      ...moto,
+      idMoto: listaMotos.length > 0 ? Math.max(...listaMotos.map(m => m.idMoto)) + 1 : 1,
+      hora: `${8 + Math.floor(Math.random() * 11)}:00`,
+    };
+    setListaMotos(prev => [...prev, novaMoto]);
+    toastRef.current?.show('Sucesso', 'Moto cadastrada com sucesso!', 'success');
+  };
+
+  const editarMoto = (motoEditada: Moto) => {
+    const atualizadas = listaMotos.map(m => m.idMoto === motoEditada.idMoto ? motoEditada : m);
+    setListaMotos(atualizadas);
+    toastRef.current?.show('Sucesso', `Moto atualizada com sucesso! ${motoEditada.modeloMoto}`, 'success');
+  };
+
+  const deletarMoto = (idMoto: number) => {
+    const atualizadas = listaMotos.filter(m => m.idMoto !== idMoto);
+    setListaMotos(atualizadas);
+    toastRef.current?.show('Sucesso', 'Moto deletada com sucesso!', 'success');
+  };
+
+  return (
+    <Stack.Navigator initialRouteName="MotoList" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="MotoList">
+        {(props) => (
+          <MotoListScreen
+            {...props}
+            toastRef={toastRef}
+            motos={listaMotos}
+          />
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="MotoDetalhes">
+        {(props) => (
+          <MotoDetalhesScreen
+            motos={listaMotos} 
+            {...props}
+            onDelete={(idMoto) => {
+              deletarMoto(idMoto);
+              props.navigation.goBack();
+            }}
+          />
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="MotoFormulario">
+        {(props) => {
+          const motoParaEditar = props.route.params?.moto;
+          return (
+            <MotoFormulario
+              moto={motoParaEditar} 
+              onSalvar={(moto: Moto) => {
+                gravarMoto(moto);
+                props.navigation.goBack();
+              }}
+              onEditar={(moto: Moto) => {
+                editarMoto(moto);
+                props.navigation.goBack();
+              }}
+              onCancelar={() => {
+                props.navigation.goBack();
+              }}
+            />
+          );
+        }}
+      </Stack.Screen>
+    </Stack.Navigator>
+  );
+};
+
+export default MotoScreen;
 
 const styles = StyleSheet.create({
   container: {

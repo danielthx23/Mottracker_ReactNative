@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer, NavigationContainerRef, useNavigation } from '@react-navigation/native';
+import { createStackNavigator, StackNavigationProp } from '@react-navigation/stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, TouchableOpacity, Modal, Pressable } from 'react-native';
@@ -12,9 +12,27 @@ import Usuario from './types/Usuario';
 import ToastMessage, { ToastMessageRef } from './components/Toast';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import HomeScreen from './screens/HomeScreen';
+import PatioScreen from './screens/PatioScreen';
 
-const Stack = createStackNavigator();
-const Drawer = createDrawerNavigator();
+type RootStackParamList = {
+  Usuario: undefined;
+  MainApp: undefined;
+};
+
+type DrawerParamList = {
+  Home: undefined;
+  Motos: undefined | {
+    screen: string;
+    params: {
+      screen: string;
+      params: { idMoto: number };
+    };
+  };
+  Patios: undefined;
+};
+
+const Stack = createStackNavigator<RootStackParamList>();
+const Drawer = createDrawerNavigator<DrawerParamList>();
 
 function DrawerNavigator({ usuarioLogado, toastRef, navigationRef }: { usuarioLogado?: Usuario, toastRef: React.RefObject<ToastMessageRef | null>, navigationRef: React.RefObject<NavigationContainerRef<any>| null>}) {
   const [menuVisible, setMenuVisible] = useState(false);
@@ -29,9 +47,19 @@ function DrawerNavigator({ usuarioLogado, toastRef, navigationRef }: { usuarioLo
     } finally {
       setMenuVisible(false);
       setTimeout(() => {
-        navigationRef.current?.navigate('Usuario' as never);
-      }, 1000);
+              navigationRef.current?.navigate('Usuario');
+            }, 1000);
     }
+  };
+
+  const navigateToMoto = (idMoto: number) => {
+    navigationRef.current?.navigate('MainApp', {
+      screen: 'Motos',
+      params: {
+        screen: 'MotoDetalhes',
+        params: { idMoto }
+      }
+    });
   };
 
   return (
@@ -111,7 +139,7 @@ function DrawerNavigator({ usuarioLogado, toastRef, navigationRef }: { usuarioLo
           {(props) => <MotoScreen {...props} toastRef={toastRef} />}
         </Drawer.Screen>
         <Drawer.Screen name="Patios">
-          {(props) => <MotoScreen {...props} toastRef={toastRef} />}
+          {(props) => <PatioScreen {...props} toastRef={toastRef} onNavigateToMoto={navigateToMoto} />}
         </Drawer.Screen>
       </Drawer.Navigator>
       </>
@@ -131,7 +159,7 @@ export default function App() {
         const token = await AsyncStorage.getItem('user_token');
         const usuariosJson = await AsyncStorage.getItem('usuarios');
   
-        if (token && usuariosJson) {
+        if (token && token.length > 0 && usuariosJson) {
           const usuarios: Usuario[] = JSON.parse(usuariosJson);
           const usuarioEncontrado = usuarios.find(u => u.tokenUsuario === token);
   
@@ -156,7 +184,7 @@ export default function App() {
   
     verificarToken();
   }, []); 
-
+  
   return (
     <View style={styles.container}>
       <ToastMessage

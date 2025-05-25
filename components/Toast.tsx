@@ -1,4 +1,3 @@
-// ToastMessage.tsx
 import { useState, forwardRef, useImperativeHandle } from 'react';
 import { Dimensions, View, Text } from 'react-native';
 import Animated, {

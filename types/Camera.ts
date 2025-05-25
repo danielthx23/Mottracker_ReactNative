@@ -1,6 +1,6 @@
-type CameraStatus = 'Ativa' | 'Inativa' | 'Em manutenção';
+export type CameraStatus = 'Ativa' | 'Inativa' | 'Em manutenção';
 
-interface Camera {
+export default interface Camera {
     idCamera: number;
     nomeCamera: string;
     ipCamera?: string;
@@ -8,5 +8,3 @@ interface Camera {
     posX?: number;
     posY?: number;
 }
-
-export default Camera;
