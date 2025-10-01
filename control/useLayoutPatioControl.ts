@@ -4,7 +4,7 @@ import {
     buscarLayoutPatioPorId, buscarLayoutPatioPorPatio, buscarLayoutPatioPorDataCriacao
 } from '../service/layoutPatioService';
 import { LayoutPatio, LayoutPatioCreateDto, LayoutPatioUpdateDto } from '../model';
-import { ContextoPrincipal } from '../contexto/ContextoPrincipal';
+import { ContextoPrincipal } from '../context/ContextoPrincipal';
 
 const layoutPatioLimpo: LayoutPatio = {
     idLayoutPatio: 0,

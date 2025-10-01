@@ -14,7 +14,7 @@ import { useCameraControl } from '../../control/useCameraControl';
 import { useMotoControl } from '../../control/useMotoControl';
 import { Moto } from '../../model/Moto';
 import { Camera } from '../../model/Camera';
-import { ContextoPrincipal } from '../../contexto/ContextoPrincipal';
+import { ContextoPrincipal } from '../../context/ContextoPrincipal';
 
 interface Patio {
   idPatio: number;

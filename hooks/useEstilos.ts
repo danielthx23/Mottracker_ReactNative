@@ -238,3 +238,5 @@ export const useEstilos = () => {
 
   return { cores, estilos };
 };
+
+

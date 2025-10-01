@@ -5,7 +5,7 @@ import {
     buscarEnderecoPorBairro, buscarEnderecoPorPatio
 } from '../service/enderecoService';
 import { Endereco, EnderecoCreateDto, EnderecoUpdateDto } from '../model';
-import { ContextoPrincipal } from '../contexto/ContextoPrincipal';
+import { ContextoPrincipal } from '../context/ContextoPrincipal';
 
 const enderecoLimpo: Endereco = {
     idEndereco: 0,

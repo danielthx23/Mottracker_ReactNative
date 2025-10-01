@@ -3,7 +3,7 @@ import {
     salvarCamera, carregarCameras, apagarCamera, atualizarCamera, buscarCameraPorId, buscarCameraPorNome, buscarCameraPorStatus
 } from '../service/cameraService';
 import { Camera, CameraCreateDto, CameraUpdateDto, CameraStatus } from '../model';
-import { ContextoPrincipal } from '../contexto/ContextoPrincipal';
+import { ContextoPrincipal } from '../context/ContextoPrincipal';
 
 const cameraLimpa: Camera = {
     idCamera: 0,

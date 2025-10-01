@@ -4,7 +4,7 @@ import {
     buscarQrCodePontoPorLayoutPatio, buscarQrCodePontoPorPosX, buscarQrCodePontoPorPosY
 } from '../service/qrCodePontoService';
 import { QrCodePonto, QrCodePontoCreateDto, QrCodePontoUpdateDto } from '../model';
-import { ContextoPrincipal } from '../contexto/ContextoPrincipal';
+import { ContextoPrincipal } from '../context/ContextoPrincipal';
 
 const qrCodePontoLimpo: QrCodePonto = {
     idQrCodePonto: 0,

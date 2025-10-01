@@ -57,3 +57,5 @@ const QrCodePontoNavigatorComponent: React.FC<QrCodePontoNavigatorProps> = ({
 export default QrCodePontoNavigatorComponent;
 
 
+
+

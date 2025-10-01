@@ -14,10 +14,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import HomeScreen from './view/screens/HomeScreen';
 import PatioScreen from './view/screens/PatioScreen';
 import { UsuarioProvider, useUsuario } from './context/UsuarioContext';
-import { ContextoPrincipalProvider } from './contexto/ContextoPrincipal';
 import { TemaProvider } from './context/TemaContext';
 import TemaToggle from './view/components/TemaToggle';
 import { useEstilos } from './hooks/useEstilos';
+import { ContextoPrincipalProvider } from './context/ContextoPrincipal';
 
 type RootStackParamList = {
   Usuario: undefined;

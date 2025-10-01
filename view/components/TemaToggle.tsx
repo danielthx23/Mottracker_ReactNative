@@ -20,7 +20,7 @@ const TemaToggle: React.FC<TemaToggleProps> = ({ style }) => {
           flexDirection: 'row',
           alignItems: 'center',
           paddingVertical: 8,
-          paddingHorizontal: 12,
+          paddingHorizontal: 10,
         },
         style,
       ]}
@@ -30,13 +30,12 @@ const TemaToggle: React.FC<TemaToggleProps> = ({ style }) => {
         name={tema === 'claro' ? 'moon' : 'sunny'}
         size={20}
         color={cores.primaria}
-        style={{ marginRight: 8 }}
+        style={{}}
       />
-      <Text style={estilos.botaoSecundarioTexto}>
-        {tema === 'claro' ? 'Modo Escuro' : 'Modo Claro'}
-      </Text>
     </TouchableOpacity>
   );
 };
 
 export default TemaToggle;
+
+

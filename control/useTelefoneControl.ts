@@ -4,7 +4,7 @@ import {
     buscarTelefonePorUsuario, buscarTelefonePorTipo
 } from '../service/telefoneService';
 import { Telefone, TelefoneCreateDto, TelefoneUpdateDto, TipoTelefone } from '../model';
-import { ContextoPrincipal } from '../contexto/ContextoPrincipal';
+import { ContextoPrincipal } from '../context/ContextoPrincipal';
 
 const telefoneLimpo: Telefone = {
     idTelefone: 0,

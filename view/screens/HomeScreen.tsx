@@ -20,7 +20,7 @@ import { salvarPatio } from '../../service/patioService';
 import { Moto } from '../../model/Moto';
 import { Patio } from '../../model/Patio';
 import { Camera } from '../../model/Camera';
-import { ContextoPrincipal } from '../../contexto/ContextoPrincipal';
+import { ContextoPrincipal } from '../../context/ContextoPrincipal';
 
 const HomeScreen = ({ toastRef, navigation }: {toastRef: React.RefObject<ToastMessageRef | null>, navigation: any}) => {
   const { cores } = useEstilos();
@@ -115,7 +115,7 @@ const HomeScreen = ({ toastRef, navigation }: {toastRef: React.RefObject<ToastMe
   // Processar dados das câmeras
   const cameras = listaCameras.map(camera => ({
     id: camera.idCamera,
-    status: (camera.status === 'Ativa' || camera.status === 1 ? 'online' : 'offline') as 'online' | 'offline'
+    status: (camera.status === 'Ativa' ? 'online' : 'offline') as 'online' | 'offline'
   }));
 
   // Processar dados dos pátios

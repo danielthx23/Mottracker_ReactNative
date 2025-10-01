@@ -5,7 +5,7 @@ import {
     buscarContratosNaoExpirados, buscarContratoPorRenovacaoAutomatica, buscarContratoPorDataEntrada
 } from '../service/contratoService';
 import { Contrato, ContratoCreateDto, ContratoUpdateDto } from '../model';
-import { ContextoPrincipal } from '../contexto/ContextoPrincipal';
+import { ContextoPrincipal } from '../context/ContextoPrincipal';
 
 const contratoLimpo: Contrato = {
     idContrato: 0,

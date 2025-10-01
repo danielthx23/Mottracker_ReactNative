@@ -3,7 +3,7 @@ import {
     salvarPermissao, carregarPermissoes, apagarPermissao, atualizarPermissao, buscarPermissaoPorId, buscarPermissaoPorNome, buscarPermissaoPorDescricao
 } from '../service/permissaoService';
 import { Permissao, PermissaoCreateDto, PermissaoUpdateDto } from '../model';
-import { ContextoPrincipal } from '../contexto/ContextoPrincipal';
+import { ContextoPrincipal } from '../context/ContextoPrincipal';
 
 const permissaoLimpa: Permissao = {
     idPermissao: 0,

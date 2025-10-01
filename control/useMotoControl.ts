@@ -4,7 +4,7 @@ import {
     buscarMotoPorEstado, buscarMotoPorContrato
 } from '../service/motoService';
 import { Moto, MotoCreateDto, MotoUpdateDto, Estados } from '../model';
-import { ContextoPrincipal } from '../contexto/ContextoPrincipal';
+import { ContextoPrincipal } from '../context/ContextoPrincipal';
 
 const motoLimpa: Moto = {
     idMoto: 0,

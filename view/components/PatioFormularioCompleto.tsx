@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Patio } from '../../model/Patio';
 import { Moto } from '../../model/Moto';
 import { Camera } from '../../model/Camera';
-import { ContextoPrincipal } from '../../contexto/ContextoPrincipal';
+import { ContextoPrincipal } from '../../context/ContextoPrincipal';
 import { useEstilos } from '../../hooks/useEstilos';
 
 interface PatioFormularioCompletoProps {

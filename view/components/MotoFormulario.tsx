@@ -14,8 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Moto, Estados } from '../../model/Moto';
 import { Patio } from '../../model/Patio';
 import { Contrato } from '../../model/Contrato';
-import { ContextoPrincipal } from '../../contexto/ContextoPrincipal';
 import { useEstilos } from '../../hooks/useEstilos';
+import { ContextoPrincipal } from '../../context/ContextoPrincipal';
 
 interface MotoFormularioProps {
   moto?: Moto;

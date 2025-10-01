@@ -10,8 +10,8 @@ import { Estados, Moto } from '../../model/Moto';
 import { useMotoControl } from '../../control/useMotoControl';
 import { useContratoControl } from '../../control/useContratoControl';
 import { useCameraControl } from '../../control/useCameraControl';
-import { ContextoPrincipal } from '../../contexto/ContextoPrincipal';
 import { Contrato, Patio, Usuario } from '../../model';
+import { ContextoPrincipal } from '../../context/ContextoPrincipal';
 
 const mapStatusToEstado = (status: string): Estados => {
   switch (status) {

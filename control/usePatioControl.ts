@@ -7,7 +7,7 @@ import {
     atualizarMotosCameras
 } from '../service/patioService';
 import { Patio, PatioCreateDto, PatioUpdateDto } from '../model';
-import { ContextoPrincipal } from '../contexto/ContextoPrincipal';
+import { ContextoPrincipal } from '../context/ContextoPrincipal';
 
 const patioLimpo: Patio = {
     idPatio: 0,

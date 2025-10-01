@@ -4,7 +4,7 @@ import {
     salvarUsuario, carregarUsuarios, apagarUsuario, atualizarUsuario, buscarUsuarioPorId, buscarUsuarioPorEmail, loginUsuario
 } from '../service/usuarioService';
 import { Usuario, UsuarioCreateDto, UsuarioUpdateDto, UsuarioLoginDto } from '../model';
-import { ContextoPrincipal } from '../contexto/ContextoPrincipal';
+import { ContextoPrincipal } from '../context/ContextoPrincipal';
 import { useUsuario } from '../context/UsuarioContext';
 
 const usuarioLimpo: Usuario = {
